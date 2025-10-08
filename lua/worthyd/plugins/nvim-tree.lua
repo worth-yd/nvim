@@ -14,7 +14,7 @@ return {
 
 		nvimtree.setup({
 			view = {
-				width = 35,
+				width = 50,
 				relativenumber = true,
 			},
 			update_focused_file = {
@@ -52,17 +52,7 @@ return {
 			},
 		})
 
-		local api = require("nvim-tree.api")
-
-		function preview_file()
-			local node = api.tree.get_node_under_cursor()
-			if node and not node.open and node.type == "file" then
-				vim.cmd("pedit " .. node.absolute_path)
-			end
-		end
-
 		-- Map this function to a key inside your nvim-tree buffer
-		vim.api.nvim_buf_set_keymap(0, "n", "<leader>p", ":lua preview_file()<CR>", { noremap = true, silent = true })
 		-- set keymaps
 		local keymap = vim.keymap -- for conciseness
 

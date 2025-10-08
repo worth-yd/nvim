@@ -78,83 +78,57 @@ return {
 			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
 		end
 
-		mason_lspconfig.setup_handlers({
-			-- default handler for installed servers
-			function(server_name)
-				lspconfig[server_name].setup({
-					capabilities = capabilities,
-				})
-			end,
-			["svelte"] = function()
-				-- configure svelte server
-				lspconfig["svelte"].setup({
-					capabilities = capabilities,
-					on_attach = function(client, bufnr)
-						vim.api.nvim_create_autocmd("BufWritePost", {
-							pattern = { "*.js", "*.ts" },
-							callback = function(ctx)
-								-- Here use ctx.match instead of ctx.file
-								client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
-							end,
-						})
-					end,
-				})
-			end,
-			["graphql"] = function()
-				-- configure graphql language server
-				lspconfig["graphql"].setup({
-					capabilities = capabilities,
-					filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-				})
-			end,
-			["emmet_ls"] = function()
-				-- configure emmet language server
-				lspconfig["emmet_ls"].setup({
-					capabilities = capabilities,
-					filetypes = {
-						"html",
-						"typescriptreact",
-						"javascriptreact",
-						"css",
-						"sass",
-						"scss",
-						"less",
-						"svelte",
+		local on_attach = function(bufnr)
+			local opts = { buffer = bufnr, silent = true }
+			keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+			keymap.set("n", "K", vim.lsp.buf.hover, opts)
+		end
+		local custom_settings = {
+			lua_ls = {
+				settings = {
+					Lua = {
+						diagnostics = { globals = { "vim" } },
+						completion = { callSnippet = "Replace" },
 					},
-				})
-			end,
-			["jdtls"] = function()
-				-- configure jdtls (Java Language Server)
-				lspconfig["jdtls"].setup({
-					capabilities = capabilities,
-					cmd = { "jdtls" }, -- Ensure you have jdtls installed and available in your PATH
-					filetypes = { "java" },
-					root_dir = lspconfig.util.root_pattern("pom.xml", "build.gradle", ".git"),
-					settings = {
-						java = {
-							-- Add any specific Java settings here
-							contentProvider = { preferred = "fernflower" },
+				},
+			},
+		}
+
+		-- Setup mason-installed servers
+		for _, server_name in ipairs(mason_lspconfig.get_installed_servers()) do
+			local opts = {
+				capabilities = capabilities,
+				on_attach = on_attach,
+			}
+
+			if custom_settings[server_name] then
+				opts = vim.tbl_deep_extend("force", opts, custom_settings[server_name])
+			end
+
+			lspconfig[server_name].setup(opts)
+		end
+
+		lspconfig.jdtls.setup({
+			capabilities = capabilities,
+			on_attach = on_attach,
+			cmd = { "jdtls" },
+			filetypes = { "java" },
+			root_dir = require("lspconfig.util").root_pattern("pom.xml", ".git"),
+			settings = {
+				java = {
+					contentProvider = { preferred = "fernflower" },
+					configuration = {
+						updateBuildConfiguration = "automatic",
+					},
+					project = {
+						referencedLibraries = {
+							"lib/**/*.jar",
 						},
 					},
-				})
-			end,
-			["lua_ls"] = function()
-				-- configure lua server (with special settings)
-				lspconfig["lua_ls"].setup({
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							-- make the language server recognize "vim" global
-							diagnostics = {
-								globals = { "vim" },
-							},
-							completion = {
-								callSnippet = "Replace",
-							},
-						},
-					},
-				})
-			end,
+				},
+			},
 		})
+
+		-- ✨ Setup jdtls separately
 	end,
 }
