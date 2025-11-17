@@ -12,7 +12,7 @@ return {
 			direction = "float", -- Open terminal in floating window
 			float_opts = {
 				border = "curved", -- Choose 'single', 'double', 'shadow', 'curved'
-				winblend = 10, -- Transparency of the floating window
+				winblend = 20, -- Transparency of the floating window
 			},
 		})
 	end,

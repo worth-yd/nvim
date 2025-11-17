@@ -18,6 +18,7 @@ return {
 				markdown = { "prettier" },
 				graphql = { "prettier" },
 				liquid = { "prettier" },
+				xml = { "prettier --plugin=@prettier/plugin-xml" }, -- ✅ XML desteği
 				lua = { "stylua" },
 				python = { "isort", "black" },
 				java = { "google-java-format" },
